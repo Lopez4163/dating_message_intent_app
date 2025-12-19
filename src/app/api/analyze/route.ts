@@ -5,6 +5,7 @@ import { DATING_INTENT_SYSTEM_PROMPT } from "@/app/lib/prompts/datingIntent.syst
 import { CanonicalToneSchema } from "@/app/lib/domain/datingIntent";
 import { AnalyzeOutputSchema } from "@/app/lib/schemas/analyzeOutput.schema";
 import { AnalyzeInputSchema } from "@/app/lib/schemas/analyzeInput.schema";
+import  { stripMarkdownCodeFences } from "@/app/lib/ai/cleanJson";
 
 export const runtime = "nodejs";
 
@@ -51,9 +52,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Empty response from Gemini" }, { status: 502 });
       }
       
-      function stripMarkdownCodeFences(s: string) {
-        return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-      }
+      stripMarkdownCodeFences(text);
       
       const cleaned = stripMarkdownCodeFences(text);
       console.log("=== GEMINI CLEANED OUTPUT START ===");
@@ -71,12 +70,23 @@ export async function POST(req: Request) {
       }
           
 
-    const data = AnalyzeOutputSchema.parse(parsed);
-    return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      const result = AnalyzeOutputSchema.safeParse(parsed);
+      if (!result.success) {
+        return NextResponse.json(
+          {
+            error: "Invalid AI output",
+            issues: result.error.issues,
+            raw: parsed,
+          },
+          { status: 502 }
+        );
+      }
+      
+      return NextResponse.json(result.data);
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: err?.message ?? "Unknown error" },
+        { status: 400 }
     );
   }
 }
