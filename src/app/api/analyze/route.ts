@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
+import { DATING_INTENT_SYSTEM_PROMPT } from "@/app/lib/prompts/datingIntent.system";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ const IntentEnum = z.enum([
   "low_interest",
 ]);
 
-const ToneEnum = z.enum([
+const CANONICAL_TONES = [
   "flirty",
   "playful",
   "curious",
@@ -26,8 +27,9 @@ const ToneEnum = z.enum([
   "sexual",
   "respectful",
   "awkward",
-  "neutral",
-]);
+] as const;
+
+
 
 const OutputSchema = z.object({
   top_intent: IntentEnum,
@@ -39,7 +41,16 @@ const OutputSchema = z.object({
     keeping_convo: z.number().min(0).max(1),
     low_interest: z.number().min(0).max(1),
   }),
-  tone: z.array(ToneEnum),
+  tone: z
+  .array(
+    z
+      .string()
+      .trim()
+      .min(1)
+      .max(20)
+      .regex(/^[a-z][a-z0-9_ -]*$/i)
+  )
+  .max(5),
   signals: z
     .array(
       z.object({
@@ -51,42 +62,6 @@ const OutputSchema = z.object({
     .max(5),
   explanation: z.string().min(1).max(400),
 });
-
-const SYSTEM_PROMPT = `
-You are a text-message intent classifier for dating/social messages.
-
-Classify intent into one of:
-- hookup
-- romantic
-- neutral
-- keeping_convo
-- low_interest
-
-Return ONLY valid JSON with EXACTLY this shape/keys:
-{
-  "top_intent": "hookup|romantic|neutral|keeping_convo|low_interest",
-  "confidence": 0 to 1,
-  "scores": {
-    "hookup": 0 to 1,
-    "romantic": 0 to 1,
-    "neutral": 0 to 1,
-    "keeping_convo": 0 to 1,
-    "low_interest": 0 to 1
-  },
-  "tone": ["flirty|playful|curious|direct|dry|warm|sexual|respectful|awkward"],
-  "signals": [
-    { "label": string, "evidence": string, "strength": 0 to 1 }
-  ],
-  "explanation": "1-3 short sentences"
-}
-
-Rules:
-- scores MUST sum to 1.0.
-- top_intent MUST be the highest score.
-- confidence <= 0.55 if ambiguous.
-- signals.evidence MUST be exact phrases from the message.
-- Output JSON only (no markdown / no extra text).
-`.trim();
 
 export async function POST(req: Request) {
   try {
@@ -113,7 +88,7 @@ export async function POST(req: Request) {
         contents: [
           {
             role: "user",
-            parts: [{ text: `${SYSTEM_PROMPT}\n\nMessage:\n${message}` }],
+            parts: [{ text: `${DATING_INTENT_SYSTEM_PROMPT}\n\nMessage:\n${message}` }],
           },
         ],
         config: {
