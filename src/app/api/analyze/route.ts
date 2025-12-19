@@ -2,64 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
 import { DATING_INTENT_SYSTEM_PROMPT } from "@/app/lib/prompts/datingIntent.system";
-import { DatingIntentSchema } from "@/app/lib/Intents/datingIntent";
+import { CanonicalToneSchema } from "@/app/lib/domain/datingIntent";
+import { AnalyzeOutputSchema } from "@/app/lib/schemas/analyzeOutput.schema";
+import { AnalyzeInputSchema } from "@/app/lib/schemas/analyzeInput.schema";
 
 export const runtime = "nodejs";
 
-const InputSchema = z.object({
-  message: z.string().trim().min(1).max(2000),
-});
-
-
-const CANONICAL_TONES = [
-  "flirty",
-  "playful",
-  "curious",
-  "direct",
-  "dry",
-  "warm",
-  "sexual",
-  "respectful",
-  "awkward",
-] as const;
-
-
-
-const OutputSchema = z.object({
-  top_intent: DatingIntentSchema,
-  confidence: z.number().min(0).max(1),
-  scores: z.object({
-    hookup: z.number().min(0).max(1),
-    romantic: z.number().min(0).max(1),
-    neutral: z.number().min(0).max(1),
-    keeping_convo: z.number().min(0).max(1),
-    low_interest: z.number().min(0).max(1),
-  }),
-  tone: z
-  .array(
-    z
-      .string()
-      .trim()
-      .min(1)
-      .max(20)
-      .regex(/^[a-z][a-z0-9_ -]*$/i)
-  )
-  .max(5),
-  signals: z
-    .array(
-      z.object({
-        label: z.string().min(1).max(50),
-        evidence: z.string().min(1).max(120),
-        strength: z.number().min(0).max(1),
-      })
-    )
-    .max(5),
-  explanation: z.string().min(1).max(400),
-});
-
 export async function POST(req: Request) {
   try {
-    const { message } = InputSchema.parse(await req.json());
+    const { message } = AnalyzeInputSchema.parse(await req.json());
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -120,7 +71,7 @@ export async function POST(req: Request) {
       }
           
 
-    const data = OutputSchema.parse(parsed);
+    const data = AnalyzeOutputSchema.parse(parsed);
     return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json(
