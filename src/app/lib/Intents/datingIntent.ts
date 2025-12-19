@@ -1,4 +1,4 @@
-// src/lib/domain/datingIntent.ts
+import { z } from "zod";
 
 export const CANONICAL_TONES = [
     "flirty",
@@ -19,4 +19,11 @@ export const CANONICAL_TONES = [
   ] as const;
   
   export type DatingIntent = typeof INTENTS[number];
+
+  //RUN TIME VALIDATED
+  export const CanonicalToneSchema = z.enum(CANONICAL_TONES);
+  export const DatingIntentSchema = z.enum(INTENTS);
+  
+
+  
   

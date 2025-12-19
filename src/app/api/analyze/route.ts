@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
 import { DATING_INTENT_SYSTEM_PROMPT } from "@/app/lib/prompts/datingIntent.system";
+import { DatingIntentSchema } from "@/app/lib/Intents/datingIntent";
 
 export const runtime = "nodejs";
 
@@ -9,13 +10,6 @@ const InputSchema = z.object({
   message: z.string().trim().min(1).max(2000),
 });
 
-const IntentEnum = z.enum([
-  "hookup",
-  "romantic",
-  "neutral",
-  "keeping_convo",
-  "low_interest",
-]);
 
 const CANONICAL_TONES = [
   "flirty",
@@ -32,7 +26,7 @@ const CANONICAL_TONES = [
 
 
 const OutputSchema = z.object({
-  top_intent: IntentEnum,
+  top_intent: DatingIntentSchema,
   confidence: z.number().min(0).max(1),
   scores: z.object({
     hookup: z.number().min(0).max(1),
