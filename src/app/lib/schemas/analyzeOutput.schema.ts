@@ -1,5 +1,7 @@
-import {z} from "zod";
+import {object, z} from "zod";
 import {DatingIntentSchema} from "@/app/lib/domain/datingIntent";
+import {CanonicalToneSchema} from "@/app/lib/domain/datingIntent";
+
 
 export const AnalyzeOutputSchema = z.object({
 top_intent: DatingIntentSchema,
@@ -11,16 +13,7 @@ confidence: z.number().min(0).max(1),
     keeping_convo: z.number().min(0).max(1),
     low_interest: z.number().min(0).max(1),
   }),
-  tone: z
-  .array(
-    z
-      .string()
-      .trim()
-      .min(1)
-      .max(20)
-      .regex(/^[a-z][a-z0-9_ -]*$/i)
-  )
-  .max(5),
+  tones: z.array(CanonicalToneSchema).min(1).max(3), // ✅
   signals: z
     .array(
       z.object({

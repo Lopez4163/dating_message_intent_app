@@ -1,90 +1,32 @@
 "use client";
 
 import { useState } from "react";
-
-type AnalyzeResponse = {
-  top_intent: "hookup" | "romantic" | "neutral" | "keeping_convo" | "low_interest";
-  confidence: number;
-  scores: Record<string, number>;
-  tone: string[];
-  signals: { label: string; evidence: string; strength: number }[];
-  explanation: string;
-};
+import type { DatingIntent, CanonicalTone } from "@/app/lib/domain/datingIntent";
+import{ useAnalyzer } from "@/app/hooks/analyzer";
+import MessageInput from "@/app/components/dash/messageInput";
+import Button from "@/app/components/buttons/button";
+import analyzeStyles from "@/app/lib/styles/buttonStyles";
 
 export default function HomePage() {
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<AnalyzeResponse | null>(null);
+const { message, setMessage, data, error, loading, analyze } = useAnalyzer();
 
-  const analyze = async () => {
-    setLoading(true);
-    setError(null);
-    setData(null);
-
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Request failed");
-
-      setData(json);
-    } catch (e: any) {
-      setError(e?.message ?? "Error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const pct = (x: number) => `${Math.round(x * 100)}%`;
 
+  const handleAnalyzeClick = () => {
+    analyze();
+  };
+
   return (
     <main style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700 }}>Message Intent Analyzer</h1>
-      <p style={{ opacity: 0.8 }}>
-        Paste a message → Gemini classifies intent with confidence + evidence.
-      </p>
-
-      <textarea
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Paste a message here..."
-        rows={6}
-        style={{
-          width: "100%",
-          marginTop: 12,
-          padding: 12,
-          borderRadius: 10,
-          border: "1px solid #333",
-          background: "#0b0b0b",
-          color: "white",
-        }}
-      />
-
-      <button
-        onClick={analyze}
-        disabled={loading || message.trim().length === 0}
-        style={{
-          marginTop: 12,
-          padding: "10px 14px",
-          borderRadius: 10,
-          border: "1px solid #333",
-          cursor: loading ? "not-allowed" : "pointer",
-        }}
-      >
-        {loading ? "Analyzing..." : "Analyze"}
-      </button>
-
+      <MessageInput message={message} setMessage={setMessage} />
+      <Button onClick={handleAnalyzeClick}>Analyze</Button>
       {error && (
         <div style={{ marginTop: 12, color: "#ff6b6b" }}>
           <b>Error:</b> {error}
         </div>
       )}
-
+      
       {data && (
         <section
           style={{
@@ -138,7 +80,7 @@ export default function HomePage() {
           <div>
             <div style={{ opacity: 0.75, fontSize: 12, marginBottom: 6 }}>Tone</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {data.tone.map((t) => (
+              {data.tones.map((t) => (
                 <span
                   key={t}
                   style={{

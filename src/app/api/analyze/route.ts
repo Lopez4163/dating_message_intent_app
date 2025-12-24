@@ -21,14 +21,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // New SDK; explicitly choose a stable API version
     const ai = new GoogleGenAI({
       apiKey,
-      // Docs: SDK defaults to v1beta; set v1 for stability
       httpOptions: { apiVersion: "v1" },
     });
 
-    // Use a current model ID (example shown in official docs uses gemini-2.0-flash)
     const resp = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         contents: [
@@ -38,7 +35,7 @@ export async function POST(req: Request) {
           },
         ],
         config: {
-            temperature: 0,        // better for strict JSON
+            temperature: 0,       
             maxOutputTokens: 600,
           },          
       });
@@ -68,8 +65,7 @@ export async function POST(req: Request) {
           { status: 502 }
         );
       }
-          
-
+      
       const result = AnalyzeOutputSchema.safeParse(parsed);
       if (!result.success) {
         return NextResponse.json(
