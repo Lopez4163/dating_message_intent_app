@@ -1,19 +1,10 @@
 "use client";
 import { useState } from "react";
-import type { DatingIntent, CanonicalTone } from "@/app/lib/domain/datingIntent";
-
-type AnalyzeResponse = {
-    top_intent: DatingIntent;
-    confidence: number;
-    scores: Record<string, number>;
-    tones: CanonicalTone[];
-    signals: { label: string; evidence: string; strength: number }[];
-    explanation: string;
-  };
+import type { AnalyzeData } from "@/app/lib/types/analyze";
 
 export function useAnalyzer(){
     const [message, setMessage] = useState("");
-    const [data, setData] = useState<AnalyzeResponse | null>(null);
+    const [data, setData] = useState<AnalyzeData | null>(null);
     const [error, setError] = useState<string | null>(null);   
     const [loading, setLoading] = useState(false);
 
