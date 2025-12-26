@@ -1,4 +1,5 @@
 import React from 'react'
+import "@/app/styles/theme.css";
 
 
 type Props = {
@@ -26,8 +27,8 @@ export default function messageInput(props: Props){
         padding: 12,
         borderRadius: 10,
         border: "1px solid #333",
-        background: "#0b0b0b",
-        color: "white",
+        background: "var(--bg)",
+        color: "black",
       }}
     />
 

@@ -1,4 +1,5 @@
 import React, { CSSProperties } from "react";
+import "@/app/styles/theme.css";
 
 type ButtonProps = {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -10,7 +11,7 @@ type ButtonProps = {
 
 export default function Button({ onClick, disabled, style, children, type = "button" }: ButtonProps) {
   return (
-    <button
+<button
       type={type}
       onClick={onClick}
       disabled={disabled}
@@ -18,9 +19,27 @@ export default function Button({ onClick, disabled, style, children, type = "but
         marginTop: 12,
         padding: "10px 14px",
         borderRadius: 10,
-        border: "1px solid #333",
+
+        /* theme-aligned */
+        border: "1px solid var(--border)",
+        background: disabled ? "var(--panel)" : "var(--primary)",
+        color: disabled ? "var(--muted)" : "var(--primaryText)",
+
         cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.7 : 1,
+        transition: "background 0.15s ease",
+
         ...style,
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.background = "var(--primaryHover)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.background = "var(--primary)";
+        }
       }}
     >
       {children}

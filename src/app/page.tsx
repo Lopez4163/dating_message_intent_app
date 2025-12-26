@@ -6,6 +6,7 @@ import{ useAnalyzer } from "@/app/hooks/analyzer";
 import MessageInput from "@/app/components/dash/messageInput";
 import Button from "@/app/components/buttons/button";
 import AnalyzeOutputWrapper from "./components/dash/analyzeOutputWrapper/analyzeOutputWrapper";
+import "@/app/styles/theme.css";
 import Link from "next/link";
 
 
@@ -17,25 +18,77 @@ const { message, setMessage, data, error, loading, analyze } = useAnalyzer();
   };
 
   return (
-    <main style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
-      <MessageInput message={message} setMessage={setMessage} />
-      <Button onClick={handleAnalyzeClick}>Analyze</Button>
+    <main className="min-h-screen bg-(--bg) text-(--text)">
+    {/* If BackgroundWash is global in layout, remove this. */}
+    <div className="pointer-events-none fixed inset-0 -z-10">
+      <div className="absolute inset-0"/>
+    </div>
 
-      <Link href="/test">
-      <button
-        className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-      >
-        Go to Dashboard
-      </button>
-      </Link>
-
-      {error && (
-        <div style={{ marginTop: 12, color: "#ff6b6b" }}>
-          <b>Error:</b> {error}
+    <section className="mx-auto max-w-6xl px-6 pt-12 pb-16">
+      {/* Page header */}
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-(--panel) ring-1 ring-(--border) px-3 py-1 text-xs text-(--muted) shadow-sm">
+          <span className="h-2 w-2 rounded-full" style={{ background: "var(--accent2)" }} />
+          vibe check • gentle clarity • reply drafts
         </div>
-      )}
-      <AnalyzeOutputWrapper data={data} />
 
-    </main>
+        <h1 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
+          Analyze a message —{" "}
+          <span style={{ color: "var(--primary)" }}>stay calm, stay in control.</span>
+        </h1>
+
+        <p className="mt-2 text-sm sm:text-base text-(--muted) max-w-[70ch]">
+          Paste a text and get signal + vibe + suggested replies that match your tone.
+        </p>
+      </div>
+
+      {/* Main panel */}
+      <div
+        className="rounded-3xl bg-(--panel) ring-1 ring-(--border) overflow-hidden"
+        style={{ boxShadow: "var(--shadow)" }}
+      >
+        <div className="px-5 py-4 border-b border-(--border) flex items-center justify-between">
+          <div className="text-sm font-semibold">Message analyzer</div>
+          <div className="text-xs text-(--muted)">
+            {loading ? "analyzing…" : "instant • calm • helpful"}
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <div className="rounded-2xl bg-white ring-1 ring-[var(--border)] p-4">
+            <div className="text-xs text-(--muted)">message</div>
+            <div className="mt-3">
+              <MessageInput message={message} setMessage={setMessage} />
+              <Button onClick={handleAnalyzeClick} disabled={loading}>
+              {loading ? "Analyzing…" : "Analyze"}
+            </Button>
+            </div>
+          </div>
+
+          {/* Actions */}
+
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-2xl bg-white ring-1 ring-(--border) p-4">
+              <div className="text-xs text-(--muted)">error</div>
+              <div className="mt-2 text-sm" style={{ color: "var(--primary)" }}>
+                <b>Error:</b> {error}
+              </div>
+            </div>
+          )}
+
+          {/* Output */}
+          <div className="rounded-2xl bg-white ring-1 ring-(--border) p-4">
+            <AnalyzeOutputWrapper data={data} />
+          </div>
+
+          <div className="text-xs text-(--muted)">
+            No judgement — just clarity + options that keep you in control.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
   );
 }
